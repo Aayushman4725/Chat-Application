@@ -1,8 +1,10 @@
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 
 public class Server implements Runnable {
     private ArrayList<ConnectionHandler> connections;  //to broadcast new client to already existing clients
@@ -19,7 +21,7 @@ public class Server implements Runnable {
 
         try {
             server= new ServerSocket(9999);
-            pool=Executors.newCachedThreadPool();
+            pool= Executors.newCachedThreadPool();
             //to always accept connection we used done.
             while(!done) {
                 Socket client=server.accept();
