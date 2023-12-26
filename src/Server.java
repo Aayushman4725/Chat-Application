@@ -1,16 +1,22 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.io.*;
+
 
 
 public class Server implements Runnable {
-    private ArrayList<ConnectionHandler> connections;  //to broadcast new client to already existing clients
+    private final ArrayList<ConnectionHandler> connections;  //to broadcast new client to already existing clients
     private ServerSocket server;
     private boolean done;
-    private ExecutorService pool;
+    private Socket client;
+
+
     public Server() {
         done=false;
         connections=new ArrayList<>();
@@ -21,7 +27,7 @@ public class Server implements Runnable {
 
         try {
             server= new ServerSocket(9999);
-            pool= Executors.newCachedThreadPool();
+            ExecutorService pool = Executors.newCachedThreadPool();
             //to always accept connection we used done.
             while(!done) {
                 Socket client=server.accept();
@@ -36,13 +42,13 @@ public class Server implements Runnable {
 
     }
 
-//    public void broadcast(String message) {
-//        for(ConnectionHandler ch: connections) {
-//            if(ch!=null) {
-//                ch.sendMesssage(message);
-//            }
-//        }
-//    }
+    public void broadcast(String message) {
+        for(ConnectionHandler ch: connections) {
+            if(ch!=null) {
+                ch.sendMesssage(message);
+            }
+        }
+   }
 
     public void shutdown() {
         try {
@@ -58,76 +64,76 @@ public class Server implements Runnable {
         }
     }
 
-//	 class ConnectionHandler implements Runnable{
-//		private Socket client;
-//		private BufferedReader in;  //reads information from client
-//		private PrintWriter out;    //writes information to the client
-//		private String nickname;
-//		public ConnectionHandler(Socket client) {
-//			this.client=client;
-//		}
-//
-//		@Override
-//		public void run() {
-//			try {
-//				out=new PrintWriter(client.getOutputStream());
-//				out.flush();
-//				in=new BufferedReader(new InputStreamReader(client.getInputStream()));
-//				out.println("Please enter a nickname:");
-//				nickname=in.readLine();
-//				System.out.println(nickname+"connected");
-//				broadcast(nickname+"joined the chat!");  //broadcast to all the client about new client who joined the chat
-//				String message;
-//				while((message = in.readLine())!= null) {
-//					if(message.startsWith("/nick ")) {
-//
-//						String[] messageSplit=message.split(" ", 2);
-//
-//						if(messageSplit.length==2) {
-//							broadcast(nickname+ "renamed themselves to" + messageSplit[1]);
-//							System.out.println(nickname+ "renamed themselves to" + messageSplit[1]);
-//							nickname=messageSplit[1];
-//							out.println("Successfully changed nickname to"+ nickname);
-//						}
-//
-//						else {
-//							out.println("No nickname provided");
-//						}
-//
-//					}
-//
-//					else if(message.startsWith("/quit")) {
-//						broadcast(nickname + "left the chat.");
-//						shutdown();
-//					}
-//					else {
-//						broadcast(nickname+": " + message);
-//					}
-//				}
-//			}catch(IOException e) {
-//				shutdown();
-//			}
-//		}
-//
-//		public void sendMesssage(String message) {
-//			out.println(message);
-//		}
-//
-//		public void shutdown() {
-//			try {
-//				in.close();
-//				out.close();
-//				if(!client.isClosed()) {
-//					client.close();
-//				}
-//			} catch(IOException e) {
-//				//ignore
-//			}
-//		}
-//
-//
-//
-//}
+	 class ConnectionHandler implements Runnable{
+		private final Socket client;
+		private BufferedReader in;  //reads information from client
+		private PrintWriter out;    //writes information to the client
+
+         public ConnectionHandler(Socket client) {
+			this.client=client;
+		}
+
+		@Override
+		public void run() {
+			try {
+				out=new PrintWriter(client.getOutputStream(),true);
+
+				in=new BufferedReader(new InputStreamReader(client.getInputStream()));
+				out.println("Please enter a nickname:");
+                String nickname = in.readLine();
+				System.out.println(nickname +" connected");
+				broadcast(nickname +" joined the chat!");  //broadcast to all the client about new client who joined the chat
+				String message;
+				while((message = in.readLine())!= null) {
+					if(message.startsWith("/nick ")) {
+
+						String[] messageSplit=message.split(" ", 2);
+
+						if(messageSplit.length==2) {
+							broadcast(nickname + "renamed themselves to" + messageSplit[1]);
+							System.out.println(nickname + "renamed themselves to" + messageSplit[1]);
+							nickname =messageSplit[1];
+							out.println("Successfully changed nickname to"+ nickname);
+						}
+
+						else {
+							out.println("No nickname provided");
+						}
+
+					}
+
+					else if(message.startsWith("/quit")) {
+						broadcast(nickname + "left the chat.");
+						shutdown();
+					}
+					else {
+						broadcast(nickname +": " + message);
+					}
+				}
+			}catch(IOException e) {
+				shutdown();
+			}
+		}
+
+		public void sendMesssage(String message) {
+			out.println(message);
+		}
+
+		public void shutdown() {
+			try {
+				in.close();
+				out.close();
+				if(!client.isClosed()) {
+					client.close();
+				}
+			} catch(IOException e) {
+				//ignore
+			}
+		}
+
+
+
+}
 public static void main(String[] args) {
     Server server=new Server();
     server.run();
