@@ -15,6 +15,7 @@ public class Server implements Runnable {
     private ServerSocket server;
     private boolean done;
     private Socket client;
+	ExecutorService pool;
 
 
     public Server() {
@@ -27,7 +28,7 @@ public class Server implements Runnable {
 
         try {
             server= new ServerSocket(9999);
-            ExecutorService pool = Executors.newCachedThreadPool();
+			pool = Executors.newCachedThreadPool();
             //to always accept connection we used done.
             while(!done) {
                 Socket client=server.accept();
@@ -53,6 +54,7 @@ public class Server implements Runnable {
     public void shutdown() {
         try {
             done=true;
+			pool.shutdown();
             if(!server.isClosed()) {
                 server.close();
             }
