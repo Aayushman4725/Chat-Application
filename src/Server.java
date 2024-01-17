@@ -9,14 +9,12 @@ import java.util.concurrent.Executors;
 import java.io.*;
 
 
-
 public class Server implements Runnable {
     private final ArrayList<ConnectionHandler> connections;  //to broadcast new client to already existing clients
     private ServerSocket server;
     private boolean done;
     private Socket client;
 	ExecutorService pool;
-
 
     public Server() {
         done=false;
@@ -134,7 +132,6 @@ public class Server implements Runnable {
 		}
 
 
-
 }
 public static void main(String[] args) {
     Server server=new Server();
@@ -143,4 +140,3 @@ public static void main(String[] args) {
 
 
 }
-
