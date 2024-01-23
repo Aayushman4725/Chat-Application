@@ -26,6 +26,7 @@ public class Server implements Runnable {
 
         try {
             server= new ServerSocket(9999);
+			System.out.println("Server is connected to port 9999");
 			pool = Executors.newCachedThreadPool();
             //to always accept connection we used done.
             while(!done) {
